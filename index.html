@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مستكشف الألعاب حسب المزاج</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --border: #334155;
+            --primary: #3b82f6;
+            --accent: #10b981;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; text-align: center; }
+        header { max-width: 800px; margin: 0 auto 20px auto; }
+        h1 { font-size: 1.8rem; margin-bottom: 10px; }
+        p.sub { color: var(--muted); font-size: 0.95rem; }
+        
+        .search-box { margin: 15px 0; }
+        .search-input { width: 100%; max-width: 450px; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--card-bg); color: #fff; text-align: center; outline: none; }
+        .search-input:focus { border-color: var(--primary); }
+        
+        .mood-container { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 25px; }
+        .mood-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 8px 14px; border-radius: 18px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .mood-btn:hover, .mood-btn.active { background: var(--primary); border-color: var(--primary); }
+        
+        .ad-box { background: var(--card-bg); border: 1px dashed var(--border); padding: 12px; max-width: 1000px; margin: 15px auto; border-radius: 8px; color: var(--muted); font-size: 0.85rem; }
+        
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; max-width: 1000px; margin: 0 auto; text-align: right; }
+        .game-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; }
+        .game-title { font-size: 1.05rem; margin-bottom: 5px; }
+        .game-size { font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; }
+        .dl-btn { background: var(--accent); color: #fff; text-decoration: none; text-align: center; padding: 8px; border-radius: 6px; font-weight: bold; display: block; }
+        .dl-btn:hover { background: #059669; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎮 مستكشف الألعاب حسب المزاج</h1>
+        <p class="sub">اختر شعورك الآن لنعرض لك الألعاب المناسبة فوراً</p>
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" onkeyup="filterGames()" placeholder="ابحث عن اسم لعبة...">
+        </div>
+    </header>
+
+    <div class="ad-box">مساحة للإعلانات / شريط الإشعارات</div>
+
+    <div class="mood-container">
+        <button class="mood-btn active" onclick="setMood('all', this)">الكل 🌐</button>
+        <button class="mood-btn" onclick="setMood('bored', this)">طفشان 🥱</button>
+        <button class="mood-btn" onclick="setMood('action', this)">تحدي وأعصاب ⚡</button>
+        <button class="mood-btn" onclick="setMood('relax', this)">استرخاء ☕</button>
+        <button class="mood-btn" onclick="setMood('retro', this)">زمن الطيبين 🕹️</button>
+    </div>
+
+    <div class="game-grid" id="gameGrid"></div>
+
+    <div class="ad-box">مساحة إعلانات سفلية</div>
+
+    <script>
+        // قائمة الألعاب المبدئية - يتم استبدال الرابط بـ File-Upload لاحقاً
+        const gamesData = [
+            { id: 1, name: "Metal Slug X", mood: "retro", size: "35MB", link: "#" },
+            { id: 2, name: "Doom Classic", mood: "action", size: "20MB", link: "#" },
+            { id: 3, name: "Sonic The Hedgehog", mood: "bored", size: "15MB", link: "#" },
+            { id: 4, name: "Tetris Deluxe", mood: "relax", size: "5MB", link: "#" }
+        ];
+
+        let activeMood = 'all';
+
+        function renderGrid(games) {
+            const grid = document.getElementById('gameGrid');
+            grid.innerHTML = '';
+            games.forEach(g => {
+                grid.innerHTML += `
+                    <div class="game-card">
+                        <div>
+                            <h3 class="game-title">${g.name}</h3>
+                            <div class="game-size">الحجم: ${g.size}</div>
+                        </div>
+                        <a href="${g.link}" target="_blank" class="dl-btn">تحميل اللعبة ⬇️</a>
+                    </div>
+                `;
+            });
+        }
+
+        function setMood(mood, btn) {
+            activeMood = mood;
+            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filterGames();
+        }
+
+        function filterGames() {
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filtered = gamesData.filter(g => {
+                const mMatch = (activeMood === 'all' || g.mood === activeMood);
+                const qMatch = g.name.toLowerCase().includes(q);
+                return mMatch && qMatch;
+            });
+            renderGrid(filtered);
+        }
+
+        renderGrid(gamesData);
+    </script>
+</body>
+</html>
