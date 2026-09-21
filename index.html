@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<<meta name="mylead-verification" content="cbbc6d2554bfd747d7028c239ed783f3">>
+<html lang="en" dir="ltr">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مستكشف الألعاب حسب المزاج</title>
+    <title>Mood Game Explorer</title>
+
     <style>
         :root {
             --bg: #0f172a;
@@ -14,100 +15,401 @@
             --text: #f8fafc;
             --muted: #94a3b8;
         }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; text-align: center; }
-        header { max-width: 800px; margin: 0 auto 20px auto; }
-        h1 { font-size: 1.8rem; margin-bottom: 10px; }
-        p.sub { color: var(--muted); font-size: 0.95rem; }
-        
-        .search-box { margin: 15px 0; }
-        .search-input { width: 100%; max-width: 450px; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--card-bg); color: #fff; text-align: center; outline: none; }
-        .search-input:focus { border-color: var(--primary); }
-        
-        .mood-container { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 25px; }
-        .mood-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 8px 14px; border-radius: 18px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
+
+        /* شريط تنقل باللغة أعلى الصفحة */
+        .top-bar { display: flex; justify-content: flex-end; max-width: 1100px; margin: 0 auto 15px auto; }
+        .lang-btn { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 0.85rem; }
+        .lang-btn:hover { background: var(--primary); border-color: var(--primary); }
+
+        header { text-align: center; margin-bottom: 25px; }
+        h1 { font-size: 1.8rem; margin-bottom: 8px; color: #fff; }
+        p.subtitle { color: var(--muted); font-size: 0.95rem; }
+
+        /* أزرار الفلترة */
+        .mood-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 20px 0; }
+        .mood-btn { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); padding: 10px 18px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
         .mood-btn:hover, .mood-btn.active { background: var(--primary); border-color: var(--primary); }
-        
-        .ad-box { background: var(--card-bg); border: 1px dashed var(--border); padding: 12px; max-width: 1000px; margin: 15px auto; border-radius: 8px; color: var(--muted); font-size: 0.85rem; }
-        
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; max-width: 1000px; margin: 0 auto; text-align: right; }
-        .game-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; }
-        .game-title { font-size: 1.05rem; margin-bottom: 5px; }
-        .game-size { font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; }
-        .dl-btn { background: var(--accent); color: #fff; text-decoration: none; text-align: center; padding: 8px; border-radius: 6px; font-weight: bold; display: block; }
-        .dl-btn:hover { background: #059669; }
+
+        /* المساحات الإعلانية */
+        .ad-space { background: rgba(51, 65, 85, 0.4); padding: 15px; margin: 20px auto; max-width: 700px; border: 1px dashed var(--border); border-radius: 8px; text-align: center; color: var(--muted); font-size: 0.85rem; min-height: 90px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+
+        /* شبكة عرض الألعاب */
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; max-width: 1100px; margin: 0 auto; }
+        .game-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; }
+        .game-card:hover { transform: translateY(-4px); }
+        .game-img { width: 100%; height: 160px; object-fit: cover; background: #334155; }
+        .game-info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
+        .game-title { font-size: 1.1rem; margin-bottom: 6px; color: #fff; }
+        .game-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; flex-grow: 1; }
+        .game-meta { font-size: 0.75rem; color: var(--primary); margin-bottom: 12px; font-weight: bold; }
+        .download-trigger-btn { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; font-size: 0.95rem; }
+        .download-trigger-btn:hover { background: #059669; }
+
+        /* النافذة المنبثقة للعداد (Modal) */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
+        .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 25px; width: 100%; max-width: 420px; text-align: center; position: relative; }
+        .modal-title { font-size: 1.2rem; margin-bottom: 10px; }
+        .timer-text { font-size: 1rem; margin: 15px 0; color: #f59e0b; }
+        .final-btn { display: none; background: var(--accent); color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 1rem; }
+        .final-btn:hover { background: #059669; }
+        .close-btn { background: transparent; border: none; color: var(--muted); margin-top: 15px; cursor: pointer; font-size: 0.85rem; display: block; width: 100%; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🎮 مستكشف الألعاب حسب المزاج</h1>
-        <p class="sub">اختر شعورك الآن لنعرض لك الألعاب المناسبة فوراً</p>
-        <div class="search-box">
-            <input type="text" id="searchInput" class="search-input" onkeyup="filterGames()" placeholder="ابحث عن اسم لعبة...">
-        </div>
-    </header>
-
-    <div class="ad-box">مساحة للإعلانات / شريط الإشعارات</div>
-
-    <div class="mood-container">
-        <button class="mood-btn active" onclick="setMood('all', this)">الكل 🌐</button>
-        <button class="mood-btn" onclick="setMood('bored', this)">طفشان 🥱</button>
-        <button class="mood-btn" onclick="setMood('action', this)">تحدي وأعصاب ⚡</button>
-        <button class="mood-btn" onclick="setMood('relax', this)">استرخاء ☕</button>
-        <button class="mood-btn" onclick="setMood('retro', this)">زمن الطيبين 🕹️</button>
+    <!-- زر تبديل اللغة -->
+    <div class="top-bar">
+        <button id="lang-btn" class="lang-btn" onclick="toggleLanguage()">العربية 🇸🇦</button>
     </div>
 
-    <div class="game-grid" id="gameGrid"></div>
+    <header>
+        <h1 id="site-title">🎮 Mood Game Explorer</h1>
+        <p id="site-subtitle" class="subtitle">Choose how you feel and find the perfect game instantly</p>
+    </header>
 
-    <div class="ad-box">مساحة إعلانات سفلية</div>
+    <!-- أزرار الفلترة حسب المزاج -->
+    <div class="mood-container">
+        <button id="btn-all" class="mood-btn active" onclick="filterGames('all', this)">All 🌐</button>
+        <button id="btn-bored" class="mood-btn" onclick="filterGames('bored', this)">Bored 🥱</button>
+        <button id="btn-action" class="mood-btn" onclick="filterGames('action', this)">Action & Challenge ⚡</button>
+        <button id="btn-relax" class="mood-btn" onclick="filterGames('relax', this)">Relaxing ☕</button>
+    </div>
+
+    <!-- 1. بنر إعلاني علوي -->
+    <div class="ad-space" id="ad-top">
+        <span id="ad-top-text">Banner Ad Space (Top)</span>
+    </div>
+
+    <!-- شبكة عرض الألعاب (30 لعبة) -->
+    <div class="game-grid">
+
+        <!-- ==================== صنف: Bored / طفشان (10 ألعاب) ==================== -->
+        <div class="game-card" data-mood="bored" data-title-en="Speed Racer 2D" data-title-ar="سباق السيارات السريع" data-desc-en="Quick arcade racing game to kill time instantly." data-desc-ar="لعبة سباق سريعة وممتعة لكسر الملل بضغطة زر." data-meta-en="Size: 45 MB | Android / PC" data-meta-ar="الحجم: 45 ميجابايت | أندرويد وكمبيوتر">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Speed+Racer" class="game-img">
+            <div class="game-info"><h3 class="game-title">Speed Racer 2D</h3><p class="game-desc">Quick arcade racing game to kill time instantly.</p><div class="game-meta">Size: 45 MB | Android / PC</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="bored" data-title-en="Brick Breaker Mania" data-title-ar="تكسير الكرات الممتعة" data-desc-en="Classic brick smashing action with modern power-ups." data-desc-ar="لعبة تكسير الجدران الكلاسيكية بمؤثرات حديثة." data-meta-en="Size: 30 MB | Android" data-meta-ar="الحجم: 30 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Brick+Breaker" class="game-img">
+            <div class="game-info"><h3 class="game-title">Brick Breaker Mania</h3><p class="game-desc">Classic brick smashing action with modern power-ups.</p><div class="game-meta">Size: 30 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="bored" data-title-en="Endless Runner 3D" data-title-ar="الركض المثير بلا نهاية" data-desc-en="Dodge obstacles and collect coins in high speed." data-desc-ar="تادي العقبات واجمع الكنز بسرعات عالية." data-meta-en="Size: 60 MB | Android / PC" data-meta-ar="الحجم: 60 ميجابايت | أندرويد وكمبيوتر">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Endless+Runner" class="game-img">
+            <div class="game-info"><h3 class="game-title">Endless Runner 3D</h3><p class="game-desc">Dodge obstacles and collect coins in high speed.</p><div class="game-meta">Size: 60 MB | Android / PC</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="bored" data-title-en="Tap Tap Jump" data-title-ar="قفزات التاب السريعة" data-desc-en="Addictive vertical jumping challenge for fast sessions." data-desc-ar="تحدي القفز الرأسي الممتع للجلسات السريعة." data-meta-en="Size: 20 MB | Android" data-meta-ar="الحجم: 20 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Tap+Tap+Jump" class="game-img">
+            <div class="game-info"><h3 class="game-title">Tap Tap Jump</h3><p class="game-desc">Addictive vertical jumping challenge for fast sessions.</p><div class="game-meta">Size: 20 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="bored" data-title-en="Pixel Dungeon Pocket" data-title-ar="مغامرات البكسل الخفيفة" data-desc-en="Explore mini dungeons and battle pixel monsters." data-desc-ar="استكشف الكهوف المصغرة وحارب الوحوش." data-meta-en="Size: 35 MB | Android / PC" data-meta-ar="الحجم: 35 ميجابايت | أندرويد وكمبيوتر">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Pixel+Dungeon" class="game-img">
+            <div class="game-info"><h3 class="game-title">Pixel Dungeon Pocket</h3><p class="game-desc">Explore mini dungeons and battle pixel monsters.</p><div class="game-meta">Size: 35 MB | Android / PC</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="bored" data-title-en="Traffic Dodge Nitro" data-title-ar="تفادي زحمة السيارات" data-desc-en="Weave through heavy highway traffic without crashing." data-desc-ar="قد سيارتك بين الطرق المزدحمة وتجنب الحوادث." data-meta-en="Size: 50 MB | Android" data-meta-ar="الحجم: 50 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Traffic+Dodge" class="game-img">
+            <div class="game-info"><h3 class="game-title">Traffic Dodge Nitro</h3><p class="game-desc">Weave through heavy highway traffic without crashing.</p><div class="game-meta">Size: 50 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="bored" data-title-en="Bubble Pop Classic" data-title-ar="تفجير الفقاعات الكلاسيكية" data-desc-en="Match colors and pop bubbles in hundreds of stages." data-desc-ar="طابق الألوان وفجر الفقاعات في مئات المراحل." data-meta-en="Size: 25 MB | Android" data-meta-ar="الحجم: 25 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Bubble+Pop" class="game-img">
+            <div class="game-info"><h3 class="game-title">Bubble Pop Classic</h3><p class="game-desc">Match colors and pop bubbles in hundreds of stages.</p><div class="game-meta">Size: 25 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="bored" data-title-en="Memory Cards Challenge" data-title-ar="تحدي قوة الذاكرة" data-desc-en="Test your focus by matching hidden card pairs." data-desc-ar="اختبر قوة تركيزك بفتح وتطابق الكروت الخفية." data-meta-en="Size: 15 MB | Android / Web" data-meta-ar="الحجم: 15 ميجابايت | أندرويد وويب">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Memory+Cards" class="game-img">
+            <div class="game-info"><h3 class="game-title">Memory Cards Challenge</h3><p class="game-desc">Test your focus by matching hidden card pairs.</p><div class="game-meta">Size: 15 MB | Android / Web</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="bored" data-title-en="Retro Space Defense" data-title-ar="الدفاع عن الفضاء القديم" data-desc-en="Defend Earth from retro alien space invaders." data-desc-ar="دافع عن كوكبك ضد هجمات المركبات الفضائية." data-meta-en="Size: 28 MB | PC / Android" data-meta-ar="الحجم: 28 ميجابايت | كمبيوتر وأندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Space+Defense" class="game-img">
+            <div class="game-info"><h3 class="game-title">Retro Space Defense</h3><p class="game-desc">Defend Earth from retro alien space invaders.</p><div class="game-meta">Size: 28 MB | PC / Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="bored" data-title-en="Flappy Jet Challenge" data-title-ar="تحدي الطائرة النفاثة" data-desc-en="Keep your mini jet airborne through narrow gaps." data-desc-ar="حافظ على تحليق طائرتك بين الممرات الضيقة." data-meta-en="Size: 18 MB | Android" data-meta-ar="الحجم: 18 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Flappy+Jet" class="game-img">
+            <div class="game-info"><h3 class="game-title">Flappy Jet Challenge</h3><p class="game-desc">Keep your mini jet airborne through narrow gaps.</p><div class="game-meta">Size: 18 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <!-- ==================== صنف: Action / تحدي وحماس (10 ألعاب) ==================== -->
+        <!-- GTA San Andreas Game Card -->
+<div class="game-card" 
+     data-mood="action" 
+     data-title-en="GTA IV: San Andreas" 
+     data-title-ar="جي تي أي4 سان أندرياس" 
+     data-desc-en="Classic open-world action game with endless freedom and exciting missions." 
+     data-desc-ar="لعبة عالم مفتوح كلاسيكية تتميز بالحرية الكبيرة والمهمات الحماسية." 
+     data-meta-en="Size: 1.77 GB | PC / Android" 
+     data-meta-ar="الحجم: 1.77 جيجابايت | كمبيوتر وأندرويد">
+    
+    <!-- رابط صورة غلاف اللعبة -->
+    <img src="https://img.utdstc.com/icon/099/ce7/099ce73c94ba48a7d313b12972ce2a62765bbe4f95be311eba0457ce28f75a21:200" alt="GTA San Andreas">
+    
+    <div class="game-info">
+        <h3 class="game-title">GTA San Andreas</h3>
+        <p class="game-desc">Classic open-world action game with endless freedom and exciting missions.</p>
+        <div class="game-meta">Size: 1.5 GB | PC / Android</div>
+        <!-- استبدل رابط التحميل أدناه برابطك المباشر -->
+        <button onclick="startDownload(this,https://gta-iv-san-andreas.ar.uptodown.com/windows)" class="download-trigger-btn">Get Game ⬇️</button>
+    </div>
+</div>
+
+        </div>
+
+        <div class="game-card" data-mood="action" data-title-en="Cyber Zombie Survival" data-title-ar="البقاء في مدينة الزومبي" data-desc-en="Survive endless waves of undead in futuristic city." data-desc-ar="قاوم موجات الزومبي المتتالية في مدينة المستقبل." data-meta-en="Size: 120 MB | PC" data-meta-ar="الحجم: 120 ميجابايت | كمبيوتر">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Zombie+Survival" class="game-img">
+            <div class="game-info"><h3 class="game-title">Cyber Zombie Survival</h3><p class="game-desc">Survive endless waves of undead in futuristic city.</p><div class="game-meta">Size: 120 MB | PC</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="action" data-title-en="Sniper Ops 3D" data-title-ar="مهمات القناص المحترف" data-desc-en="Take long distance shots and complete stealth missions." data-desc-ar="انفذ قنص الأهداف من مسافات بعيدة بدقة." data-meta-en="Size: 85 MB | Android" data-meta-ar="الحجم: 85 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Sniper+Ops" class="game-img">
+            <div class="game-info"><h3 class="game-title">Sniper Ops 3D</h3><p class="game-desc">Take long distance shots and complete stealth missions.</p><div class="game-meta">Size: 85 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="action" data-title-en="Brawl Combat Turbo" data-title-ar="معركة الأبطال الخارقة" data-desc-en="Knock enemies out of arena in multiplayer battles." data-desc-ar="أسقط منافسيك خارج الحلبة في قتال حماسي." data-meta-en="Size: 110 MB | Android / PC" data-meta-ar="الحجم: 110 ميجابايت | أندرويد وكمبيوتر">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Brawl+Combat" class="game-img">
+            <div class="game-info"><h3 class="game-title">Brawl Combat Turbo</h3><p class="game-desc">Knock enemies out of arena in multiplayer battles.</p><div class="game-meta">Size: 110 MB | Android / PC</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="action" data-title-en="Rogue Knight Dungeon" data-title-ar="الفرسان والكهوف المظلمة" data-desc-en="Hardcore sword fighting inside procedural mazes." data-desc-ar="مواجهات سيوف حاسمة داخل متاهات القلاع." data-meta-en="Size: 140 MB | PC" data-meta-ar="الحجم: 140 ميجابايت | كمبيوتر">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Rogue+Knight" class="game-img">
+            <div class="game-info"><h3 class="game-title">Rogue Knight Dungeon</h3><p class="game-desc">Hardcore sword fighting inside procedural mazes.</p><div class="game-meta">Size: 140 MB | PC</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="action" data-title-en="Mech War Simulator" data-title-ar="حرب الآليين الضخمة" data-desc-en="Control giant armed robots and dominate battlefield." data-desc-ar="قُد الروبوتات القتالية ودمر آليات العدو." data-meta-en="Size: 130 MB | PC / Android" data-meta-ar="الحجم: 130 ميجابايت | كمبيوتر وأندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Mech+War" class="game-img">
+            <div class="game-info"><h3 class="game-title">Mech War Simulator</h3><p class="game-desc">Control giant armed robots and dominate battlefield.</p><div class="game-meta">Size: 130 MB | PC / Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="action" data-title-en="Alien Shooter Unleashed" data-title-ar="إطلاق النار على الفضائيين" data-desc-en="Heavy firepower action against alien swarms." data-desc-ar="أسلحة ثقيلة وإطلاق نار متواصل ضد الفضائيين." data-meta-en="Size: 75 MB | Android" data-meta-ar="الحجم: 75 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Alien+Shooter" class="game-img">
+            <div class="game-info"><h3 class="game-title">Alien Shooter Unleashed</h3><p class="game-desc">Heavy firepower action against alien swarms.</p><div class="game-meta">Size: 75 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="action" data-title-en="Jetpack Nitro Rush" data-title-ar="المحركات النفاثة الخارقة" data-desc-en="Fly through obstacles using high powered jetpack." data-desc-ar="حلّق بمحركك النفاث بسرعة وتخطى العقبات." data-meta-en="Size: 55 MB | Android" data-meta-ar="الحجم: 55 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Jetpack+Nitro" class="game-img">
+            <div class="game-info"><h3 class="game-title">Jetpack Nitro Rush</h3><p class="game-desc">Fly through obstacles using high powered jetpack.</p><div class="game-meta">Size: 55 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="action" data-title-en="Gladiator Clash Arena" data-title-ar="قتال الميدان الروماني" data-desc-en="Prove your strength in brutal arena duels." data-desc-ar="أثبت قوتك في مواجهات الحلبة الرومانية." data-meta-en="Size: 100 MB | PC" data-meta-ar="الحجم: 100 ميجابايت | كمبيوتر">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Gladiator+Clash" class="game-img">
+            <div class="game-info"><h3 class="game-title">Gladiator Clash Arena</h3><p class="game-desc">Prove your strength in brutal arena duels.</p><div class="game-meta">Size: 100 MB | PC</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="action" data-title-en="Drift Car Showdown" data-title-ar="تحدي التفحيط والدريفت" data-desc-en="Master high speed drift turns on asphalt tracks." data-desc-ar="اتقن منعطفات الدريفت السريعة على حلبات الإسفلت." data-meta-en="Size: 90 MB | Android / PC" data-meta-ar="الحجم: 90 ميجابايت | أندرويد وكمبيوتر">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Drift+Car" class="game-img">
+            <div class="game-info"><h3 class="game-title">Drift Car Showdown</h3><p class="game-desc">Master high speed drift turns on asphalt tracks.</p><div class="game-meta">Size: 90 MB | Android / PC</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <!-- ==================== صنف: Relax / استرخاء (10 ألعاب) ==================== -->
+        <div class="game-card" data-mood="relax" data-title-en="Peaceful Farm Tycoon" data-title-ar="المزرعة الهادئة الجميلة" data-desc-en="Relaxing farming simulation with peaceful music." data-desc-ar="محاكاة زراعة هادئة بدون أي ضغوطات وبموسيقى مريحة." data-meta-en="Size: 40 MB | Android" data-meta-ar="الحجم: 40 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Peaceful+Farm" class="game-img">
+            <div class="game-info"><h3 class="game-title">Peaceful Farm Tycoon</h3><p class="game-desc">Relaxing farming simulation with peaceful music.</p><div class="game-meta">Size: 40 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="relax" data-title-en="Zen Jigsaw Puzzles" data-title-ar="ألغاز الصور الهادئة" data-desc-en="Beautiful landscape puzzles without time limits." data-desc-ar="ألغاز مناظر طبيعية جميلة بدون وقت محدد." data-meta-en="Size: 35 MB | Android / PC" data-meta-ar="الحجم: 35 ميجابايت | أندرويد وكمبيوتر">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Zen+Jigsaw" class="game-img">
+            <div class="game-info"><h3 class="game-title">Zen Jigsaw Puzzles</h3><p class="game-desc">Beautiful landscape puzzles without time limits.</p><div class="game-meta">Size: 35 MB | Android / PC</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="relax" data-title-en="Cozy Fishing Pond" data-title-ar="صيد الأسماك المريح" data-desc-en="Catch unique fish in calm lakes at sunset." data-desc-ar="اصطاد الأسماك النادرة في بحيرة هادئة وقت الغروب." data-meta-en="Size: 45 MB | Android" data-meta-ar="الحجم: 45 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Cozy+Fishing" class="game-img">
+            <div class="game-info"><h3 class="game-title">Cozy Fishing Pond</h3><p class="game-desc">Catch unique fish in calm lakes at sunset.</p><div class="game-meta">Size: 45 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="relax" data-title-en="Starlight Art Coloring" data-title-ar="تلوين اللوحات النجمية" data-desc-en="Color by number with soothing ambient background sound." data-desc-ar="لون الرسومات بالأرقام مع أصوات خلفية مريحة للأعصاب." data-meta-en="Size: 25 MB | Android" data-meta-ar="الحجم: 25 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Art+Coloring" class="game-img">
+            <div class="game-info"><h3 class="game-title">Starlight Art Coloring</h3><p class="game-desc">Color by number with soothing ambient background sound.</p><div class="game-meta">Size: 25 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="relax" data-title-en="Island Builder Lite" data-title-ar="بناء الجزيرة الاستوائية" data-desc-en="Design your cozy tropical island step by step." data-desc-ar="صمم جزيرتك الاستوائية الهادئة خطوة بخطوة." data-meta-en="Size: 50 MB | Android / PC" data-meta-ar="الحجم: 50 ميجابايت | أندرويد وكمبيوتر">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Island+Builder" class="game-img">
+            <div class="game-info"><h3 class="game-title">Island Builder Lite</h3><p class="game-desc">Design your cozy tropical island step by step.</p><div class="game-meta">Size: 50 MB | Android / PC</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="relax" data-title-en="Tree Garden Simulator" data-title-ar="حديقة الأشجار الخضراء" data-desc-en="Plant trees, watch them grow and collect fruits." data-desc-ar="ازرع الأشجار واعتنِ بها وشاهد نموها الهادئ." data-meta-en="Size: 30 MB | Android" data-meta-ar="الحجم: 30 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Tree+Garden" class="game-img">
+            <div class="game-info"><h3 class="game-title">Tree Garden Simulator</h3><p class="game-desc">Plant trees, watch them grow and collect fruits.</p><div class="game-meta">Size: 30 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="relax" data-title-en="Smooth Mahjong Zen" data-title-ar="ماجونغ زن الكلاسيكي" data-desc-en="Classic tile matching game with relaxing themes." data-desc-ar="لعبة ماجونغ الكلاسيكية بخلفيات وموسيقى زن." data-meta-en="Size: 20 MB | Android / Web" data-meta-ar="الحجم: 20 ميجابايت | أندرويد وويب">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Smooth+Mahjong" class="game-img">
+            <div class="game-info"><h3 class="game-title">Smooth Mahjong Zen</h3><p class="game-desc">Classic tile matching game with relaxing themes.</p><div class="game-meta">Size: 20 MB | Android / Web</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="relax" data-title-en="Bonsai Care Tycoon" data-title-ar="العناية بأشجار البونساي" data-desc-en="Trim and nurture miniature Japanese bonsai trees." data-desc-ar="قلم واعتنِ بأشجار البونساي اليابانية المصغرة." data-meta-en="Size: 35 MB | Android" data-meta-ar="الحجم: 35 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Bonsai+Care" class="game-img">
+            <div class="game-info"><h3 class="game-title">Bonsai Care Tycoon</h3><p class="game-desc">Trim and nurture miniature Japanese bonsai trees.</p><div class="game-meta">Size: 35 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="relax" data-title-en="Sky Glider Soar" data-title-ar="التحليق في السحاب" data-desc-en="Glide endlessly over endless mountains and clouds." data-desc-ar="حلق بشراعتك فوق الجبال والسحاب في جو هادئ." data-meta-en="Size: 40 MB | Android / PC" data-meta-ar="الحجم: 40 ميجابايت | أندرويد وكمبيوتر">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Sky+Glider" class="game-img">
+            <div class="game-info"><h3 class="game-title">Sky Glider Soar</h3><p class="game-desc">Glide endlessly over endless mountains and clouds.</p><div class="game-meta">Size: 40 MB | Android / PC</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+        <div class="game-card" data-mood="relax" data-title-en="Ocean Aquarium Idle" data-title-ar="حوض الأسماك المائي" data-desc-en="Build a colorful underwater world with sea life." data-desc-ar="ابنِ عالمك المائي الملون بالشعب المرجانية والأسماك." data-meta-en="Size: 55 MB | Android" data-meta-ar="الحجم: 55 ميجابايت | أندرويد">
+            <img src="https://via.placeholder.com/300x160/1e293b/ffffff?text=Ocean+Aquarium" class="game-img">
+            <div class="game-info"><h3 class="game-title">Ocean Aquarium Idle</h3><p class="game-desc">Build a colorful underwater world with sea life.</p><div class="game-meta">Size: 55 MB | Android</div><button onclick="startDownload(this, 'YOUR_DOWNLOAD_LINK')" class="download-trigger-btn">Get Game ⬇️</button></div>
+        </div>
+
+    </div>
+
+    <!-- 2. بنر إعلاني سفلي -->
+    <div class="ad-space" id="ad-bottom">
+        <span id="ad-bottom-text">Banner Ad Space (Bottom)</span>
+    </div>
+
+    <!-- النافذة المنبثقة للعداد (10 ثوانٍ) -->
+    <div id="downloadModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modalGameTitle" class="modal-title">Preparing link...</h3>
+            
+            <!-- 3. بنر إعلاني داخل العداد -->
+            <div class="ad-space" id="ad-modal" style="margin: 15px 0;">
+                <span id="ad-modal-text">Banner Ad Space (In Timer)</span>
+            </div>
+
+            <p id="timerText" class="timer-text"><span id="timer-label-1">Please wait</span> <b id="seconds">10</b> <span id="timer-label-2">seconds...</span></p>
+            
+            <a id="finalDownloadBtn" href="#" target="_blank" class="final-btn">Skip Wait & Get Game 🎮</a>
+            
+            <button id="close-btn-text" onclick="closeModal()" class="close-btn">Close Window</button>
+        </div>
+    </div>
 
     <script>
-        // قائمة الألعاب المبدئية - يتم استبدال الرابط بـ File-Upload لاحقاً
-        const gamesData = [
-            { id: 1, name: "Metal Slug X", mood: "retro", size: "35MB", link: "#" },
-            { id: 2, name: "Doom Classic", mood: "action", size: "20MB", link: "#" },
-            { id: 3, name: "Sonic The Hedgehog", mood: "bored", size: "15MB", link: "#" },
-            { id: 4, name: "Tetris Deluxe", mood: "relax", size: "5MB", link: "#" }
-        ];
+        let currentLang = 'en';
 
-        let activeMood = 'all';
+        const translations = {
+            en: {
+                siteTitle: "🎮 Mood Game Explorer",
+                siteSubtitle: "Choose how you feel and find the perfect game instantly",
+                langToggle: "العربية 🇸🇦",
+                btnAll: "All 🌐",
+                btnBored: "Bored 🥱",
+                btnAction: "Action & Challenge ⚡",
+                btnRelax: "Relaxing ☕",
+                adTop: "Banner Ad Space (Top)",
+                adBottom: "Banner Ad Space (Bottom)",
+                adModal: "Banner Ad Space (In Timer)",
+                modalTitle: "Preparing link...",
+                timerL1: "Please wait",
+                timerL2: "seconds...",
+                finalBtn: "Skip Wait & Get Game 🎮",
+                closeBtn: "Close Window",
+                getGameBtn: "Get Game ⬇️"
+            },
+            ar: {
+                siteTitle: "🎮 مستكشف الألعاب حسب المزاج",
+                siteSubtitle: "اختر شعورك الحالي واستكشف أفضل الألعاب المناسبة لك فوراً",
+                langToggle: "English 🇬🇧",
+                btnAll: "الكل 🌐",
+                btnBored: "طفشان / ملل 🥱",
+                btnAction: "تحدي وحماس ⚡",
+                btnRelax: "استرخاء ☕",
+                adTop: "مساحة بنر إعلاني علوي",
+                adBottom: "مساحة بنر إعلاني سفلي",
+                adModal: "مساحة بنر إعلاني داخل العداد",
+                modalTitle: "جاري تجهيز الرابط...",
+                timerL1: "يرجى الانتظار",
+                timerL2: "ثوانٍ...",
+                finalBtn: "تخطي الوقت واحصل على اللعبة 🎮",
+                closeBtn: "إغلاق النافذة",
+                getGameBtn: "تحميل اللعبة ⬇️"
+            }
+        };
 
-        function renderGrid(games) {
-            const grid = document.getElementById('gameGrid');
-            grid.innerHTML = '';
-            games.forEach(g => {
-                grid.innerHTML += `
-                    <div class="game-card">
-                        <div>
-                            <h3 class="game-title">${g.name}</h3>
-                            <div class="game-size">الحجم: ${g.size}</div>
-                        </div>
-                        <a href="${g.link}" target="_blank" class="dl-btn">تحميل اللعبة ⬇️</a>
-                    </div>
-                `;
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'ar' : 'en';
+            document.documentElement.lang = currentLang;
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+
+            const t = translations[currentLang];
+
+            // تحديث نصوص الواجهة الثابتة
+            document.getElementById('site-title').innerText = t.siteTitle;
+            document.getElementById('site-subtitle').innerText = t.siteSubtitle;
+            document.getElementById('lang-btn').innerText = t.langToggle;
+            document.getElementById('btn-all').innerText = t.btnAll;
+            document.getElementById('btn-bored').innerText = t.btnBored;
+            document.getElementById('btn-action').innerText = t.btnAction;
+            document.getElementById('btn-relax').innerText = t.btnRelax;
+
+            document.getElementById('ad-top-text').innerText = t.adTop;
+            document.getElementById('ad-bottom-text').innerText = t.adBottom;
+            document.getElementById('ad-modal-text').innerText = t.adModal;
+
+            document.getElementById('modalGameTitle').innerText = t.modalTitle;
+            document.getElementById('timer-label-1').innerText = t.timerL1;
+            document.getElementById('timer-label-2').innerText = t.timerL2;
+            document.getElementById('finalDownloadBtn').innerText = t.finalBtn;
+            document.getElementById('close-btn-text').innerText = t.closeBtn;
+
+            // تحديث الألعاب برمجياً حسب اللغة المختارة
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.querySelector('.game-title').innerText = card.getAttribute(`data-title-${currentLang}`);
+                card.querySelector('.game-desc').innerText = card.getAttribute(`data-desc-${currentLang}`);
+                card.querySelector('.game-meta').innerText = card.getAttribute(`data-meta-${currentLang}`);
+                card.querySelector('.download-trigger-btn').innerText = t.getGameBtn;
             });
         }
 
-        function setMood(mood, btn) {
-            activeMood = mood;
-            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            filterGames();
-        }
+        // دالة الفلترة حسب المزاج
+        function filterGames(mood, btnElement) {
+            let cards = document.querySelectorAll('.game-card');
+            let buttons = document.querySelectorAll('.mood-btn');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
 
-        function filterGames() {
-            const q = document.getElementById('searchInput').value.toLowerCase().trim();
-            const filtered = gamesData.filter(g => {
-                const mMatch = (activeMood === 'all' || g.mood === activeMood);
-                const qMatch = g.name.toLowerCase().includes(q);
-                return mMatch && qMatch;
+            cards.forEach(card => {
+                if (mood === 'all' || card.getAttribute('data-mood') === mood) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
             });
-            renderGrid(filtered);
         }
 
-        renderGrid(gamesData);
+        // دالة تشغيل العداد المنبثق (10 ثوانٍ)
+        let countdown;
+        function startDownload(btnElement, downloadUrl) {
+            const card = btnElement.closest('.game-card');
+            const gameTitle = card.getAttribute(`data-title-${currentLang}`);
+
+            document.getElementById('modalGameTitle').innerText = gameTitle;
+            document.getElementById('downloadModal').style.display = 'flex';
+            document.getElementById('finalDownloadBtn').style.display = 'none';
+            document.getElementById('timerText').style.display = 'block';
+            
+            let timeLeft = 10;
+            document.getElementById('seconds').innerText = timeLeft;
+
+            clearInterval(countdown);
+            countdown = setInterval(() => {
+                timeLeft--;
+                document.getElementById('seconds').innerText = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    document.getElementById('timerText').style.display = 'none';
+                    const dlBtn = document.getElementById('finalDownloadBtn');
+                    dlBtn.href = downloadUrl;
+                    dlBtn.style.display = 'inline-block';
+                }
+            }, 1000);
+        }
+
+        function closeModal() {
+            document.getElementById('downloadModal').style.display = 'none';
+            clearInterval(countdown);
+        }
     </script>
 </body>
 </html>
-<!-- mylead-verification: cbbc6d2554bfd747d7028c239ed783f3 -->
